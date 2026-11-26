@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dream Game Studio — describe a game, play it</title>
+<meta name="description" content="Describe the game you dream of and play it right here. Powered by Pollinations models; you pay from your own balance." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>" />
+<style>
+  :root {
+    --bg: #070b12;
+    --panel: #0c1320;
+    --panel-2: #101a2b;
+    --line: #1e2a47;
+    --text: #dbe6f3;
+    --muted: #8fa3bd;
+    --accent: #7ef0d8;
+    --accent-2: #6c7cff;
+    --danger: #ff7b7b;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Inter, system-ui, -apple-system, sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(1100px 520px at 12% -8%, #14233d 0%, transparent 60%),
+      radial-gradient(900px 480px at 92% 0%, #1a1636 0%, transparent 55%),
+      var(--bg);
+    min-height: 100vh;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header {
+    display: flex; align-items: center; gap: 16px;
+    padding: 18px 26px; border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; z-index: 20;
+    backdrop-filter: blur(10px);
+    background: #070b12cc;
+  }
+  .logo {
+    width: 40px; height: 40px; border-radius: 11px; flex: none;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: grid; place-items: center; font-size: 20px;
+  }
+  .brand { display: flex; flex-direction: column; gap: 2px; }
+  .brand b { font-size: 17px; letter-spacing: .2px; }
+  .brand span { font-size: 12.5px; color: var(--muted); }
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .pill {
+    font-size: 12.5px; color: var(--muted); border: 1px solid var(--line);
+    border-radius: 999px; padding: 6px 12px; background: #0b1220;
+  }
+  .pill.ok { color: var(--accent); border-color: #1d4f47; }
+
+  main {
+    display: grid; grid-template-columns: minmax(300px, 400px) 1fr;
+    gap: 20px; padding: 20px 26px 40px; align-items: start;
+  }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--line); border-radius: 16px; padding: 18px;
+  }
+  .panel h2 {
+    margin: 0 0 4px; font-size: 13px; letter-spacing: .14em;
+    text-transform: uppercase; color: #6f8ab0; font-weight: 600;
+  }
+  .panel .hint { margin: 0 0 14px; font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+  textarea {
+    width: 100%; min-height: 150px; resize: vertical;
+    background: #080e18; color: var(--text);
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 13px 14px; font: inherit; font-size: 14.5px; line-height: 1.55;
+  }
+  textarea:focus { outline: 2px solid #2b4470; border-color: #2b4470; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 16px; }
+  .chip {
+    font-size: 12.5px; color: #b9c8dc; background: #0d1626;
+    border: 1px solid var(--line); border-radius: 999px; padding: 6px 11px;
+    cursor: pointer; transition: .15s;
+  }
+  .chip:hover { border-color: #35507f; color: #fff; }
+
+  .row { display: flex; gap: 10px; align-items: center; }
+  .row + .row { margin-top: 12px; }
+  label.field { font-size: 12.5px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  select, input[type="text"] {
+    background: #080e18; color: var(--text); border: 1px solid var(--line);
+    border-radius: 10px; padding: 9px 11px; font: inherit; font-size: 13.5px; width: 100%;
+  }
+
+  button {
+    font: inherit; font-weight: 600; font-size: 14.5px;
+    border-radius: 12px; border: 1px solid transparent; cursor: pointer;
+    padding: 12px 16px; transition: .15s;
+  }
+  button:disabled { opacity: .55; cursor: not-allowed; }
+  .primary {
+    background: linear-gradient(135deg, var(--accent), #45c6ff);
+    color: #04222a; width: 100%; margin-top: 16px;
+  }
+  .primary:hover:not(:disabled) { filter: brightness(1.08); }
+  .ghost {
+    background: #0d1626; color: var(--text); border-color: var(--line);
+    padding: 8px 12px; font-size: 13px; font-weight: 500;
+  }
+  .ghost:hover:not(:disabled) { border-color: #35507f; }
+
+  .stage {
+    position: relative; background: #05080e; border: 1px solid var(--line);
+    border-radius: 16px; overflow: hidden; min-height: 520px;
+    display: grid; place-items: center;
+  }
+  .stage iframe { width: 100%; height: 640px; border: 0; display: none; background: #000; }
+  .stage.ready iframe { display: block; }
+  .placeholder { padding: 40px; text-align: center; color: var(--muted); max-width: 460px; }
+  .placeholder .big { font-size: 46px; margin-bottom: 10px; }
+  .placeholder h3 { color: var(--text); margin: 0 0 8px; font-size: 17px; font-weight: 600; }
+  .placeholder p { margin: 0; font-size: 13.5px; line-height: 1.6; }
+
+  .stage-toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px;
+    border-bottom: 1px solid var(--line); background: #080e18; align-items: center;
+  }
+  .stage-toolbar .spacer { margin-left: auto; }
+
+  .progress {
+    position: absolute; inset: 0; display: none; place-items: center;
+    background: #05080ee6; backdrop-filter: blur(2px); text-align: center; padding: 30px;
+  }
+  .stage.busy .progress { display: grid; }
+  .spinner {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 3px solid #1e2a47; border-top-color: var(--accent);
+    animation: spin 0.9s linear infinite; margin: 0 auto 14px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #progressText { font-size: 14px; color: var(--text); }
+  #progressSub { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+
+  .alert {
+    display: none; margin-top: 12px; padding: 12px 14px; border-radius: 12px;
+    font-size: 13.5px; line-height: 1.55;
+    background: #2a1518; border: 1px solid #5c2630; color: #ffd9d9;
+  }
+  .alert.show { display: block; }
+  .alert a { color: #ffb4b4; }
+
+  details.advanced { margin-top: 14px; }
+  details.advanced summary {
+    cursor: pointer; font-size: 12.5px; color: var(--muted); list-style: none;
+  }
+  details.advanced summary::-webkit-details-marker { display: none; }
+  details.advanced[open] summary { color: var(--text); }
+  details.advanced .inner { margin-top: 10px; }
+
+  footer {
+    padding: 20px 26px 40px; color: var(--muted); font-size: 12.5px;
+    display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+    border-top: 1px solid var(--line);
+  }
+  footer img { height: 20px; display: block; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo" aria-hidden="true">🎮</div>
+  <div class="brand">
+    <b>Dream Game Studio</b>
+    <span>Describe a game. Play it in the browser. Share the link.</span>
+  </div>
+  <div class="header-right">
+    <span class="pill" id="balancePill">not signed in</span>
+    <!-- Pollinations sign-in: visitors spend from their own balance -->
+    <polli-connect id="connect" app-key="pk_YxXyBK7lNdUC9mYf"></polli-connect>
+  </div>
+</header>
+
+<main>
+  <section class="panel">
+    <h2>Your dream game</h2>
+    <p class="hint">Write it like you would to a friend: the goal, the controls, what makes it fun. The model writes the whole game as one HTML file.</p>
+
+    <label class="sr" for="brief">Describe the game</label>
+    <textarea id="brief" placeholder="A tiny submarine explores a dark cave, dodging rocks with the arrow keys and collecting glowing crystals before the oxygen runs out."></textarea>
+
+    <div class="chips" id="chips">
+      <button class="chip" type="button">Rocket that lands on moving platforms</button>
+      <button class="chip" type="button">Cat cafe tycoon in 60 seconds</button>
+      <button class="chip" type="button">Rhythm game with falling arrows</button>
+      <button class="chip" type="button">Snake, but the walls are your own trail</button>
+    </div>
+
+    <div class="row">
+      <label class="field">Model
+        <select id="model">
+          <option value="openai/gpt-5.3-codex" selected>gpt-5.3-codex — best games</option>
+          <option value="moonshotai/kimi-k3.1-pro">kimi-k3.1-pro — fast, clean code</option>
+          <option value="z-ai/glm-5.3-flash">glm-5.3-flash — cheapest</option>
+        </select>
+      </label>
+    </div>
+    <div class="row">
+      <label class="field" style="flex-direction:row;align-items:center;gap:8px;font-size:13.5px;color:var(--text)">
+        <input type="checkbox" id="plan" checked style="width:auto" />
+        Plan the game first (2 calls, better result)
+      </label>
+    </div>
+
+    <button class="primary" id="make" type="button">Create my game</button>
+    <div class="alert" id="alert"></div>
+
+    <details class="advanced">
+      <summary>Advanced: use my own API key instead of sign-in</summary>
+      <div class="inner">
+        <label class="field">Pollinations key (<code>sk_…</code>)
+          <input type="text" id="pasteKey" placeholder="sk_…" autocomplete="off" spellcheck="false" />
+        </label>
+        <div class="row" style="margin-top:10px">
+          <button class="ghost" id="saveKey" type="button">Save locally</button>
+          <button class="ghost" id="forgetKey" type="button">Forget</button>
+        </div>
+        <p class="hint" style="margin-top:10px">Stored only in this browser's localStorage. Sign-in above is the recommended path.</p>
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <div class="stage" id="stage">
+      <div class="stage-toolbar">
+        <span class="pill" id="gamePill">no game yet</span>
+        <span class="spacer"></span>
+        <button class="ghost" id="regenerate" type="button" disabled>Regenerate</button>
+        <button class="ghost" id="openTab" type="button" disabled>Open in new tab</button>
+        <button class="ghost" id="share" type="button" disabled>Copy share link</button>
+      </div>
+      <div class="placeholder" id="placeholder">
+        <div class="big">🕹️</div>
+        <h3>Your game will appear here</h3>
+        <p>Describe it on the left and press “Create my game”. Everything runs in a sandboxed frame, so the generated code cannot touch this page.</p>
+      </div>
+      <iframe id="frame" sandbox="allow-scripts allow-pointer-lock" title="Generated game"></iframe>
+      <div class="progress">
+        <div>
+          <div class="spinner"></div>
+          <div id="progressText">Warming up…</div>
+          <div id="progressSub">first games usually take 20–40 seconds</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <a href="https://pollinations.ai/?ref=badge" aria-label="Made with pollinations.ai">
+    <img src="https://raw.githubusercontent.com/pollinations/pollinations/main/packages/ui/src/brand/badge-made-with.svg" alt="Made with pollinations.ai" />
+  </a>
+  <span>Games are written by Pollinations text models at request time. You pay from your own balance.</span>
+  <span style="margin-left:auto">Quest #20021</span>
+</footer>
+
+<script defer src="https://cdn.jsdelivr.net/npm/@pollinations/ui@0.1.0-alpha.20/dist/connect.js"></script>
+<script>
+(() => {
+  "use strict";
+
+  const API = "https://gen.pollinations.ai/v1";
+  const KEY_STORAGE = "dream-game-studio:key";
+  const state = {
+    game: "",
+    busy: false,
+    lastPrompt: "",
+    lastModel: "",
+    timer: null,
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const el = {
+    brief: $("brief"), model: $("model"), plan: $("plan"), make: $("make"),
+    alert: $("alert"), stage: $("stage"), frame: $("frame"),
+    placeholder: $("placeholder"), progressText: $("progressText"),
+    progressSub: $("progressSub"), gamePill: $("gamePill"),
+    balance: $("balancePill"), regenerate: $("regenerate"),
+    openTab: $("openTab"), share: $("share"), pasteKey: $("pasteKey"),
+    saveKey: $("saveKey"), forgetKey: $("forgetKey"), chips: $("chips"),
+  };
+
+  // ---------------------------------------------------------------- sign-in
+  function connectKey() {
+    const node = document.getElementById("connect");
+    const key = node && typeof node.apiKey === "string" ? node.apiKey.trim() : "";
+    return key || "";
+  }
+
+  function currentKey() {
+    return connectKey() || (localStorage.getItem(KEY_STORAGE) || "").trim();
+  }
+
+  function refreshIdentity() {
+    const viaConnect = !!connectKey();
+    const viaLocal = !!localStorage.getItem(KEY_STORAGE);
+    if (viaConnect) {
+      el.balance.textContent = "signed in";
+      el.balance.classList.add("ok");
+    } else if (viaLocal) {
+      el.balance.textContent = "own key loaded";
+      el.balance.classList.add("ok");
+    } else {
+      el.balance.textContent = "not signed in";
+      el.balance.classList.remove("ok");
+    }
+  }
+
+  const connectNode = document.getElementById("connect");
+  if (connectNode) {
+    connectNode.addEventListener("change", refreshIdentity);
+    // the element may hydrate after our script runs
+    setTimeout(refreshIdentity, 1200);
+  }
+
+  el.saveKey.addEventListener("click", () => {
+    const value = el.pasteKey.value.trim();
+    if (!value.startsWith("sk_")) {
+      toast("A Pollinations key starts with sk_. Sign in above instead if you don't have one.", true);
+      return;
+    }
+    localStorage.setItem(KEY_STORAGE, value);
+    el.pasteKey.value = "";
+    refreshIdentity();
+    toast("Key saved in this browser only.", false);
+  });
+  el.forgetKey.addEventListener("click", () => {
+    localStorage.removeItem(KEY_STORAGE);
+    refreshIdentity();
+    toast("Key forgotten.", false);
+  });
+
+  // ------------------------------------------------------------------ tools
+  function toast(message, isError) {
+    const info = { bg: "#0f2a24", border: "#1d4f47", color: "#bff5e7" };
+    el.alert.textContent = message;
+    el.alert.classList.add("show");
+    el.alert.style.background = isError ? "" : info.bg;
+    el.alert.style.borderColor = isError ? "" : info.border;
+    el.alert.style.color = isError ? "" : info.color;
+  }
+  function hideAlert() {
+    el.alert.classList.remove("show");
+  }
+
+  function busy(on, text, sub) {
+    state.busy = on;
+    el.stage.classList.toggle("busy", on);
+    el.make.disabled = on;
+    if (text) el.progressText.textContent = text;
+    if (sub !== undefined) el.progressSub.textContent = sub;
+  }
+
+  const STEPS = [
+    [0, "Reading your idea…", "the model is planning mechanics"],
+    [8, "Writing the game…", "one HTML file, inline CSS and JS"],
+    [22, "Wiring the controls…", "sometimes it rewrites the whole level"],
+    [45, "Almost there…", "still long is normal for detailed ideas"],
+  ];
+
+  function startProgress() {
+    const began = Date.now();
+    clearInterval(state.timer);
+    state.timer = setInterval(() => {
+      const seconds = (Date.now() - began) / 1000;
+      let step = STEPS[0];
+      for (const candidate of STEPS) {
+        if (seconds >= candidate[0]) step = candidate;
+      }
+      el.progressText.textContent = step[1];
+      el.progressSub.textContent = `${step[2]} · ${seconds.toFixed(0)}s`;
+    }, 700);
+  }
+
+  function stopProgress() {
+    clearInterval(state.timer);
+    state.timer = null;
+  }
+
+  async function callChat(messages, model, maxTokens) {
+    const key = currentKey();
+    if (!key) {
+      const error = new Error("NO_KEY");
+      error.code = "NO_KEY";
+      throw error;
+    }
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 180000);
+    try {
+      const response = await fetch(`${API}/chat/completions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+        body: JSON.stringify({ model, messages, max_tokens: maxTokens, temperature: 1 }),
+        signal: controller.signal,
+      });
+      if (!response.ok) {
+        const body = await response.text().catch(() => "");
+        const error = new Error(`HTTP ${response.status}`);
+        error.status = response.status;
+        error.body = body.slice(0, 400);
+        throw error;
+      }
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || "";
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  async function planGame(brief, model) {
+    const plan = await callChat([
+      {
+        role: "system",
+        content:
+          "You design tiny browser games. Reply with a short spec only: 6-10 lines, no code. Cover: player, goal, controls, obstacles, win and lose state, the visual style in five words.",
+      },
+      { role: "user", content: brief },
+    ], model, 400);
+    return plan.trim();
+  }
+
+  const CODE_SYSTEM =
+    "You write tiny self-contained HTML5 games. Reply with ONE complete HTML document and nothing else: no markdown fences, no commentary. " +
+    "Inline CSS and JS only, no external requests, must run immediately inside a sandboxed iframe. " +
+    "Gameplay rules: the first two seconds must be safe — no hazard may start on or next to the player; " +
+    "difficulty ramps up over time; keep a visible score and a short on-screen line saying how to play; " +
+    "handle both arrow keys and WASD, plus on-screen touch buttons on narrow screens; " +
+    "use requestAnimationFrame with delta time so speed is frame-rate independent; " +
+    "always provide a restart control and a clear win or lose state.";
+
+  function extractHtml(text) {
+    let out = String(text || "").trim();
+    // strip markdown fences and stray prose around the document
+    const fenced = out.match(/```(?:html)?\s*([\s\S]*?)```/i);
+    if (fenced) out = fenced[1].trim();
+    const start = out.search(/<!doctype html|<html[\s>]/i);
+    if (start > 0) out = out.slice(start);
+    const end = out.toLowerCase().lastIndexOf("</html>");
+    if (end !== -1) out = out.slice(0, end + 7);
+    if (!/<html[\s>]/i.test(out)) {
+      out = `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;height:100%;background:#000;color:#eee;font-family:system-ui}</style></head><body>${out}</body></html>`;
+    }
+    return out;
+  }
+
+  async function generate() {
+    const brief = el.brief.value.trim();
+    if (brief.length < 12) {
+      toast("Add a little more detail — at least a sentence about the game.", true);
+      return;
+    }
+    if (!currentKey()) {
+      toast("Connect your Pollinations account first (button in the header), or paste a key under “Advanced”.", true);
+      return;
+    }
+    hideAlert();
+    const model = el.model.value;
+    state.lastPrompt = brief;
+    state.lastModel = model;
+    busy(true, "Reading your idea…", "the model is planning mechanics");
+    startProgress();
+    try {
+      let spec = "";
+      if (el.plan.checked) {
+        try {
+          spec = await planGame(brief, model);
+        } catch (error) {
+          if (error.code === "NO_KEY") throw error;
+          // planning is a bonus: fall back to a single request
+          spec = "";
+        }
+      }
+      const userMessage = spec
+        ? `Build this game.\n\nBrief from the player:\n${brief}\n\nSpec to follow:\n${spec}`
+        : `Build this game: ${brief}`;
+      const raw = await callChat(
+        [{ role: "system", content: CODE_SYSTEM }, { role: "user", content: userMessage }],
+        model,
+        6000,
+      );
+      const html = extractHtml(raw);
+      if (html.length < 400) throw new Error("EMPTY");
+      showGame(html);
+    } catch (error) {
+      stopProgress();
+      busy(false);
+      handleError(error);
+      return;
+    }
+    stopProgress();
+    busy(false);
+    el.progressText.textContent = "Done";
+    el.progressSub.textContent = "";
+  }
+
+  function handleError(error) {
+    if (error.code === "NO_KEY") {
+      toast("Connect your Pollinations account in the header — the sign-in button uses your own balance.", true);
+      return;
+    }
+    if (error.name === "AbortError") {
+      toast("The model took longer than three minutes. Try a simpler idea or the faster model.", true);
+      return;
+    }
+    if (error.status === 401) {
+      toast("Your key was rejected. Sign in again, or paste a fresh key under “Advanced”.", true);
+      return;
+    }
+    if (error.status === 402) {
+      toast("Your Pollinations balance is empty. Top up at enter.pollinations.ai, then try again.", true);
+      return;
+    }
+    if (error.status === 429) {
+      toast("Rate limited. Wait a few seconds and press Create again.", true);
+      return;
+    }
+    if (error.message === "EMPTY") {
+      toast("The model returned something unusable. Press Regenerate — it usually works the second time.", true);
+      return;
+    }
+    toast(`Generation failed (${error.message}). Try again or pick another model.`, true);
+  }
+
+  function showGame(html) {
+    state.game = html;
+    el.stage.classList.add("ready");
+    el.placeholder.style.display = "none";
+    el.frame.srcdoc = html;
+    el.gamePill.textContent = `${(html.length / 1024).toFixed(1)} KB game`;
+    el.regenerate.disabled = false;
+    el.openTab.disabled = false;
+    el.share.disabled = false;
+  }
+
+  // ---------------------------------------------------------------- sharing
+  function shareLink() {
+    const params = new URLSearchParams({ g: state.lastPrompt, m: state.lastModel });
+    return `${location.origin}${location.pathname}#${params.toString()}`;
+  }
+
+  el.share.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(shareLink());
+      toast("Share link copied. Opening it fills the brief and the model — press Create to play the same game.", false);
+    } catch {
+      window.prompt("Copy this link:", shareLink());
+    }
+  });
+
+  el.openTab.addEventListener("click", () => {
+    const blob = new Blob([state.game], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank", "noopener");
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  });
+
+  el.regenerate.addEventListener("click", () => {
+    if (state.busy) return;
+    if (state.lastPrompt) el.brief.value = state.lastPrompt;
+    generate();
+  });
+
+  // ------------------------------------------------------------------ entry
+  el.make.addEventListener("click", () => { if (!state.busy) generate(); });
+
+  el.chips.addEventListener("click", (event) => {
+    const chip = event.target.closest("button.chip");
+    if (!chip) return;
+    el.brief.value = chip.textContent.trim();
+    el.brief.focus();
+  });
+
+  el.brief.addEventListener("keydown", (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.key === "Enter" && !state.busy) generate();
+  });
+
+  // restore a shared game request
+  if (location.hash.length > 1) {
+    const params = new URLSearchParams(location.hash.slice(1));
+    const brief = params.get("g");
+    const model = params.get("m");
+    if (brief) el.brief.value = brief;
+    if (model) {
+      const option = [...el.model.options].find((o) => o.value === model);
+      if (option) el.model.selectedIndex = option.index;
+    }
+    if (brief) toast("Shared idea loaded — press Create my game to play it.", false);
+  }
+
+  refreshIdentity();
+})();
+</script>
+</body>
+</html>
+
