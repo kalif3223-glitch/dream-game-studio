@@ -23,14 +23,15 @@ Built for the Pollinations community quest **#20021**.
 
 ## Paying with your own balance
 
-No key, no app-hosted credits. The header carries the
+No key field, no app-hosted credits. The header carries the
 [`polli-connect`](https://github.com/pollinations/pollinations/blob/main/BRING_YOUR_OWN_POLLEN.md)
 element: visitors sign in with their Pollinations account and the page spends
-from **their** balance, not the author's.
+from **their** balance, not the author's. Nothing is pasted, and nothing is
+stored in the browser.
 
-Prefer a key? Open *Advanced* and paste an `sk_…` key — it is kept in this
-browser's `localStorage` and never sent anywhere except `gen.pollinations.ai`.
-
+The element runs without an App Key. Adding one (`app-key="pk_…"` in
+`index.html`, with this page's URL as a redirect URI) shows the app's name on the
+consent screen and lets the author earn from usage.
 ## Models
 
 | Step | Default | Why |
@@ -85,3 +86,4 @@ a server: the page is static and keeps your key in `localStorage` only.
 ## License
 
 MIT — see [LICENSE](LICENSE).
+

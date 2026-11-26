@@ -153,14 +153,6 @@
   .alert.show { display: block; }
   .alert a { color: #ffb4b4; }
 
-  details.advanced { margin-top: 14px; }
-  details.advanced summary {
-    cursor: pointer; font-size: 12.5px; color: var(--muted); list-style: none;
-  }
-  details.advanced summary::-webkit-details-marker { display: none; }
-  details.advanced[open] summary { color: var(--text); }
-  details.advanced .inner { margin-top: 10px; }
-
   footer {
     padding: 20px 26px 40px; color: var(--muted); font-size: 12.5px;
     display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
@@ -180,7 +172,7 @@
   <div class="header-right">
     <span class="pill" id="balancePill">not signed in</span>
     <!-- Pollinations sign-in: visitors spend from their own balance -->
-    <polli-connect id="connect" app-key="pk_YxXyBK7lNdUC9mYf"></polli-connect>
+    <polli-connect id="connect"></polli-connect>
   </div>
 </header>
 
@@ -217,21 +209,7 @@
 
     <button class="primary" id="make" type="button">Create my game</button>
     <div class="alert" id="alert"></div>
-
-    <details class="advanced">
-      <summary>Advanced: use my own API key instead of sign-in</summary>
-      <div class="inner">
-        <label class="field">Pollinations key (<code>sk_…</code>)
-          <input type="text" id="pasteKey" placeholder="sk_…" autocomplete="off" spellcheck="false" />
-        </label>
-        <div class="row" style="margin-top:10px">
-          <button class="ghost" id="saveKey" type="button">Save locally</button>
-          <button class="ghost" id="forgetKey" type="button">Forget</button>
-        </div>
-        <p class="hint" style="margin-top:10px">Stored only in this browser's localStorage. Sign-in above is the recommended path.</p>
-      </div>
-    </details>
-  </section>
+</section>
 
   <section>
     <div class="stage" id="stage">
@@ -273,7 +251,6 @@
   "use strict";
 
   const API = "https://gen.pollinations.ai/v1";
-  const KEY_STORAGE = "dream-game-studio:key";
   const state = {
     game: "",
     busy: false,
@@ -289,8 +266,7 @@
     placeholder: $("placeholder"), progressText: $("progressText"),
     progressSub: $("progressSub"), gamePill: $("gamePill"),
     balance: $("balancePill"), regenerate: $("regenerate"),
-    openTab: $("openTab"), share: $("share"), pasteKey: $("pasteKey"),
-    saveKey: $("saveKey"), forgetKey: $("forgetKey"), chips: $("chips"),
+    openTab: $("openTab"), share: $("share"), chips: $("chips"),
   };
 
   // ---------------------------------------------------------------- sign-in
@@ -301,24 +277,13 @@
   }
 
   function currentKey() {
-    return connectKey() || (localStorage.getItem(KEY_STORAGE) || "").trim();
+    return connectKey();
   }
-
   function refreshIdentity() {
-    const viaConnect = !!connectKey();
-    const viaLocal = !!localStorage.getItem(KEY_STORAGE);
-    if (viaConnect) {
-      el.balance.textContent = "signed in";
-      el.balance.classList.add("ok");
-    } else if (viaLocal) {
-      el.balance.textContent = "own key loaded";
-      el.balance.classList.add("ok");
-    } else {
-      el.balance.textContent = "not signed in";
-      el.balance.classList.remove("ok");
-    }
+    const signedIn = !!connectKey();
+    el.balance.textContent = signedIn ? "signed in" : "not signed in";
+    el.balance.classList.toggle("ok", signedIn);
   }
-
   const connectNode = document.getElementById("connect");
   if (connectNode) {
     connectNode.addEventListener("change", refreshIdentity);
@@ -326,22 +291,6 @@
     setTimeout(refreshIdentity, 1200);
   }
 
-  el.saveKey.addEventListener("click", () => {
-    const value = el.pasteKey.value.trim();
-    if (!value.startsWith("sk_")) {
-      toast("A Pollinations key starts with sk_. Sign in above instead if you don't have one.", true);
-      return;
-    }
-    localStorage.setItem(KEY_STORAGE, value);
-    el.pasteKey.value = "";
-    refreshIdentity();
-    toast("Key saved in this browser only.", false);
-  });
-  el.forgetKey.addEventListener("click", () => {
-    localStorage.removeItem(KEY_STORAGE);
-    refreshIdentity();
-    toast("Key forgotten.", false);
-  });
 
   // ------------------------------------------------------------------ tools
   function toast(message, isError) {
@@ -463,7 +412,7 @@
       return;
     }
     if (!currentKey()) {
-      toast("Connect your Pollinations account first (button in the header), or paste a key under “Advanced”.", true);
+      toast("Connect your Pollinations account first — the button in the header uses your own balance.", true);
       return;
     }
     hideAlert();
@@ -508,7 +457,7 @@
 
   function handleError(error) {
     if (error.code === "NO_KEY") {
-      toast("Connect your Pollinations account in the header — the sign-in button uses your own balance.", true);
+      toast("Connect your Pollinations account in the header — sign-in uses your own balance, no key needed.", true);
       return;
     }
     if (error.name === "AbortError") {
@@ -516,7 +465,7 @@
       return;
     }
     if (error.status === 401) {
-      toast("Your key was rejected. Sign in again, or paste a fresh key under “Advanced”.", true);
+      toast("Your session was rejected. Open Pollinations Connect again to re-authorise.", true);
       return;
     }
     if (error.status === 402) {
@@ -605,4 +554,8 @@
 </script>
 </body>
 </html>
+
+
+
+
 
